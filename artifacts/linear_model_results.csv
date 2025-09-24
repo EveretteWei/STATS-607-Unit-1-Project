@@ -1,0 +1,5 @@
+model_name,accuracy
+Penalized Logistic Regression,0.9276401564537158
+LDA,0.9041720990873533
+Kernel Logistic Regression (RBF),0.9615384615384616
+Kernel Logistic Regression (Poly),0.9380704041720991

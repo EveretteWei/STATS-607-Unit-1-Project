@@ -1,0 +1,4 @@
+model_name,accuracy
+Linear SVM,0.9328552803129074
+Kernel SVM (RBF),0.9524119947848761
+Kernel SVM (Poly),0.9504563233376793
