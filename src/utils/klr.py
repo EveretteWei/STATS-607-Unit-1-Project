@@ -1,6 +1,7 @@
 # --- Define Kernel Logistic Regression class ---
 from scipy.special import expit
 from scipy import optimize
+import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_is_fitted
 from sklearn.utils.optimize import _check_optimize_result
