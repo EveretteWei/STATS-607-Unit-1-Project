@@ -7,7 +7,8 @@ from sklearn.metrics import accuracy_score
 
 # Import the custom KernelLogisticRegression class from the new klr.py file
 # This assumes klr.py is in a 'utils' folder one level above this script.
-from ..utils.klr import KernelLogisticRegression
+from klr import KernelLogisticRegression
+
 
 
 # --- Path Definitions ---

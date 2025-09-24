@@ -2,20 +2,18 @@ import subprocess
 import sys
 import os
 
-def run_module(module_path):
+def run_script(script_path):
     """
-    Runs a Python module and checks for errors.
+    Runs a Python script and checks for errors.
     """
-    print(f"--- Running {os.path.basename(module_path)} ---")
+    print(f"--- Running {os.path.basename(script_path)} ---")
     try:
-        # Use runpy to execute the script as a module
-        command = [sys.executable, '-m', module_path.replace(os.sep, '.')]
-        # The script path should be relative to the project root
-        result = subprocess.run(command, check=True, text=True, capture_output=True)
+        # Use subprocess to run the script directly
+        result = subprocess.run([sys.executable, script_path], check=True, text=True, capture_output=True)
         print(result.stdout)
-        print(f"--- Successfully ran {os.path.basename(module_path)} ---")
+        print(f"--- Successfully ran {os.path.basename(script_path)} ---")
     except subprocess.CalledProcessError as e:
-        print(f"Error running {os.path.basename(module_path)}:")
+        print(f"Error running {os.path.basename(script_path)}:")
         print("Stdout:", e.stdout)
         print("Stderr:", e.stderr)
         sys.exit(1) # Exit the entire process if a module fails
@@ -26,8 +24,10 @@ def main():
     """
     print("Starting the full project analysis pipeline...")
 
-    # Define the order of modules to run
-    pipeline_modules = [
+    # Define the order of scripts to run
+    # Note: 01_preprocess.py should be in src/pipeline/
+    # All other scripts are assumed to be in src/analysis/
+    pipeline_scripts = [
         os.path.join('src', 'pipeline', '01_preprocess.py'),
         os.path.join('src', 'analysis', '02_linear_and_kernel_models.py'),
         os.path.join('src', 'analysis', '03_tree_based_models.py'),
@@ -36,13 +36,11 @@ def main():
         os.path.join('src', 'analysis', '06_summary_results.py')
     ]
 
-    for module in pipeline_modules:
-        if not os.path.exists(module):
-            print(f"Error: Script not found at '{module}'. Please check your file paths.")
+    for script in pipeline_scripts:
+        if not os.path.exists(script):
+            print(f"Error: Script not found at '{script}'. Please check your file paths.")
             sys.exit(1)
-        # Convert path to module name (e.g., 'src/analysis/02_...' -> 'src.analysis.02_...')
-        module_name = os.path.splitext(module)[0].replace(os.sep, '.')
-        run_module(module_name)
+        run_script(script)
 
     print("\nFull analysis pipeline completed successfully!")
 
