@@ -110,7 +110,7 @@ The entry point orchestrates `01_preprocess.py` through `06_summary_results.py` 
 After a successful run, the following outputs are produced:
 
 - **Final summary CSV** (sorted by accuracy, descending):  
-  `results/tables/final_model_comparison.csv`
+  [`results/tables/final_model_comparison.csv`](results/tables/final_model_comparison.csv)
 
 - **Performance figure**:  
   `results/figures/model_performance_comparison.png`
@@ -143,6 +143,26 @@ pytest
 - Inline comments are kept minimal and in English.
 - Scripts print clear progress messages so the pipeline is easy to audit in logs.
 
+```python
+def _loss_and_grad(w, K, y, alpha, clip=30):
+    """Compute logistic loss with kernelized linear predictor and its gradient.
+
+    This uses a kernel matrix K (precomputed pairwise kernels) and an L2 penalty
+    controlled by `alpha = 1/C`. The objective is:
+        L(w) = sum_i [ -y_i (K w)_i + log(1 + exp((K w)_i)) ] + (alpha/2) w^T K w
+
+    Args:
+        w (np.ndarray): Coefficients in the kernel space, shape (n_samples,).
+        K (np.ndarray): Kernel matrix, shape (n_samples, n_samples).
+        y (np.ndarray): Binary targets in {0,1} mapped to {1,0} via LabelBinarizer.
+        alpha (float): L2 penalty factor (1/C).
+        clip (int): Kept for compatibility; not used to clip values here.
+
+    Returns:
+        tuple[float, np.ndarray]: (loss, grad) where `loss` is a scalar and
+        `grad` has shape (n_samples,).
+    """
+```
 ---
 
 ## 9) Reproducibility Notes
@@ -150,3 +170,15 @@ pytest
 - Seeds are fixed where applicable; minor variations may occur across library versions.
 - Re‑running the pipeline overwrites previous artifacts, keeping the workflow idempotent.
 
+
+## 10) Before → After
+
+Below shows the **original, unstructured layout** before refactoring:
+
+![Original project layout](docs/images/original-structure.png)
+
+And the **refactored, reproducible structure** used in this project:
+- `data/raw`, `data/processed`
+- `src/pipeline`, `src/analysis`
+- `artifacts/`, `results/tables`, `results/figures`
+- `tests/`, `run_analysis.py`, `requirements.txt`, `README.md`
