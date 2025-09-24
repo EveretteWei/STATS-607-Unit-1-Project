@@ -143,25 +143,45 @@ pytest
 - Inline comments are kept minimal and in English.
 - Scripts print clear progress messages so the pipeline is easy to audit in logs.
 
-```python
-def _loss_and_grad(w, K, y, alpha, clip=30):
-    """Compute logistic loss with kernelized linear predictor and its gradient.
+An example in [`src/analysis/klr.py`](src/analysis/klr.py) is as follows:
 
-    This uses a kernel matrix K (precomputed pairwise kernels) and an L2 penalty
-    controlled by `alpha = 1/C`. The objective is:
-        L(w) = sum_i [ -y_i (K w)_i + log(1 + exp((K w)_i)) ] + (alpha/2) w^T K w
+```python
+def _kernel_logistic_regression_path(K, y, max_iter, tol=1e-4, coef=None, solver='lbfgs', C=1):
+    """Optimize kernel logistic regression coefficients.
+
+    Uses L-BFGS-B to minimize the objective in `_loss_and_grad`. If an initial
+    coefficient vector is not provided, initializes `w0` as zeros.
 
     Args:
-        w (np.ndarray): Coefficients in the kernel space, shape (n_samples,).
-        K (np.ndarray): Kernel matrix, shape (n_samples, n_samples).
-        y (np.ndarray): Binary targets in {0,1} mapped to {1,0} via LabelBinarizer.
-        alpha (float): L2 penalty factor (1/C).
-        clip (int): Kept for compatibility; not used to clip values here.
+        K (np.ndarray): Kernel Gram matrix, shape (n_samples, n_samples).
+        y (np.ndarray): Binary targets in {0,1}, shape (n_samples,).
+        max_iter (int): Maximum optimizer iterations.
+        tol (float): Gradient tolerance for convergence (passed to optimizer).
+        coef (np.ndarray | None): Optional warm start vector for `w0`.
+        solver (str): Currently only 'lbfgs' is supported.
+        C (float): Inverse regularization strength (alpha = 1 / C).
 
     Returns:
-        tuple[float, np.ndarray]: (loss, grad) where `loss` is a scalar and
-        `grad` has shape (n_samples,).
+        tuple[np.ndarray, int]: (coef, n_iter) where `coef` is the optimized
+        coefficient vector with shape (n_samples,) and `n_iter` is the number
+        of iterations reported by the optimizer.
     """
+    n_samples = K.shape[0]
+    func = _loss_and_grad
+    if coef is None:
+        w0 = np.zeros(n_samples, order='F', dtype=K.dtype)
+    else:
+        w0 = coef
+
+    if solver == 'lbfgs':
+        opt_res = optimize.minimize(
+            func, w0, method="L-BFGS-B", jac=True,
+            args=(K, y, 1.0 / C, 30),
+            options={"gtol": tol, "maxiter": max_iter}
+        )
+    n_iter = _check_optimize_result(solver, opt_res, max_iter)
+    w0, loss = opt_res.x, opt_res.fun
+    return np.array(w0), n_iter
 ```
 ---
 
